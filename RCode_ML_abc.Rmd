@@ -1,0 +1,1167 @@
+##SET WORKING DIRECTORY
+```{r}
+setwd("F:/R")
+
+getwd()
+```
+
+***********************************************************************************************************************************************
+
+##REQUIRED PACKAGE INSTALLATION
+```{r}
+
+library(DMwR)
+
+library(purrr)
+
+library(dplyr)
+
+library(corrplot)
+
+library(ggplot2)
+
+library(tidyverse)
+
+library(lattice)
+
+library(caret)
+
+library(plyr)
+
+library(DataExplorer)
+
+library(caTools)
+
+library(ROCR)
+
+library(ineq)
+
+library(multiColl)
+
+library(naivebayes)
+
+library(e1071)
+
+library(class)
+
+library(lmtest)
+
+library(car)
+
+library(pscl)
+
+library(tidyr)
+
+library(ipred)
+
+library(gbm)
+
+library(rpart)
+
+
+library(scales)
+
+library(pROC)
+
+library(plotROC)
+
+library(PRROC)
+
+
+
+
+
+
+
+```
+
+***********************************************************************************************************************************************
+
+##READ INPUT DATA
+```{r}
+Cars_Orig = read.csv("Cars_edited.csv", header = TRUE)
+
+Cars_Orig
+```
+
+***********************************************************************************************************************************************
+
+###EXPLORATORY DATA ANALYSIS
+
+##VIEW DIMENSIONS OF THE DATASET
+```{r}
+dim(Cars_Orig)
+```
+
+##VIEW COLUMN NAMES
+```{r}
+names(Cars_Orig)
+```
+
+##VIEW STRUCTURE OF DATASET
+```{r}
+str(Cars_Orig)
+```
+
+##VIEW SUMMARY OF DATASET
+```{r}
+summary(Cars_Orig)
+```
+
+***********************************************************************************************************************************************
+
+###VARIABLE TRANSFORMATION 
+
+##CONVERSION OF "ENGINEER","MBA" & "LICENSE" CATEGORICAL VARIABLES INTO FACTOR
+```{r}
+Cars_Orig$Engineer = as.factor(Cars_Orig$Engineer)
+Cars_Orig$MBA = as.factor(Cars_Orig$MBA)
+Cars_Orig$license = as.factor(Cars_Orig$license)
+```
+
+##CONVERSION OF "GENDER" & "TRANSPORT" CHARACTER VARIABLES INTO FACTORS
+```{r}
+Cars_Orig$Gender = as.factor(Cars_Orig$Gender)
+Cars_Orig$Transport = as.factor(Cars_Orig$Transport)
+```
+
+##CHECKING LEVELS IN VARIABLES "GENDER" and "TRANSPORT"
+```{r}
+levels(Cars_Orig[,2])
+
+levels(Cars_Orig[,9])
+```
+
+##CONVERTING "GENDER" VARIABLE AS BINARY - FEMALE 0 and MALE 1
+```{r}
+Cars_Orig['Gender'] = lapply(Cars_Orig['Gender'], factor, levels=c("Female", "Male"), labels = c(0,1))
+```
+
+##CREATING NEW COLUMN "TRANSPORT_NEW" TO REFLECT 1 FOR CAR USAGE AND 0 IF NOT
+```{r}
+Cars_Orig$Transport_New = ifelse(Cars_Orig$Transport=="Car", 1,0)
+```
+
+##CONVERTING THE NEW COLUMN "TRANSPORT_NEW" INTO FACTOR
+```{r}
+Cars_Orig$Transport_New = as.factor(Cars_Orig$Transport_New)
+```
+
+##REMOVING OLD COLUMN "TRANSPORT" WITH 3 LEVELS
+```{r}
+Cars_1 = Cars_Orig[,-9]
+```
+
+##RUNNING ATTACH() COMMAND ON NEW DATASET - Cars_1
+```{r}
+attach(Cars_1)
+```
+
+##RE-RUNNING OF STR() TO ENSURE SUCCESSFUL CONVERSION OF VARIABLES AND INCLUSION OF NEW COLUMN
+```{r}
+str(Cars_1)
+```
+
+##CHECKING SUMMARY OF DATA AND ENSURING SUCCESSFUL CONVERSION OF VARIABLES AND INCLUSION OF NEW COLUMN
+```{r}
+summary(Cars_1)
+```
+
+***********************************************************************************************************************************************
+
+###MISSING VALUE CHECK AND TREATMENT
+
+##CHECK FOR MISSING VALUES
+```{r}
+sum(is.na(Cars_1))
+```
+
+##IDENTIFYING MISSING VALUE
+```{r}
+sapply(Cars_1, function(x) sum(is.na(x)))
+```
+
+##PLOTTING MISSING VALUE - PRE TREATMENT
+```{r}
+plot_missing(Cars_1)
+```
+
+##USING KNN IMPUTATION TO REPLACE MISSING VALUE
+```{r}
+Cars_1 = knnImputation(Cars_1,5)
+```
+
+##RE-RUNNING THE MISSING VALUE CHECK
+```{r}
+sapply(Cars_1, function(x) sum(is.na(x)))
+```
+
+##PLOTTING THE MISSING VALUES - POST TREATMENT
+```{r}
+plot_missing(Cars_1)
+```
+
+***********************************************************************************************************************************************
+
+###UNIVARIATE ANALYSIS
+
+##AGE
+
+##SUMMARY
+```{r}
+summary(Age)
+```
+
+##MODE
+```{r}
+modeAge = table(as.vector(Age))
+names(modeAge) [modeAge == max(modeAge)]
+```
+
+##DENSITY AND DISTRIBUTION VISUALIZATION 
+```{r}
+hist(Age, density = 27, col = "turquoise4", border = "black", main = " Density & Distribution of Age",xlab = "Age", freq = FALSE)
+lines(density(Age))
+```
+
+***********************************************************************************************************************************************
+
+##GENDER
+
+##SUMMARY
+```{r}
+summary(Gender)
+```
+
+##VISUALIZATION
+```{r}
+plot(Gender, main = "Gender Distribution", xlab = "Gender", col = c("darkturquoise", "turquoise4"))
+legend("topleft",inset = .02, title = "Legend", c("Female", "Male"), fill = c("darkturquoise", "turquoise4"), cex = 0.8)
+```
+
+***********************************************************************************************************************************************
+
+##ENGINEER
+
+##SUMMARY
+```{r}
+summary(Engineer)
+```
+
+##VISUALIZATION
+```{r}
+plot(Engineer, main = "Number of Engineers", xlab = "Engineer", col = c("darkturquoise", "turquoise4"))
+legend("topleft",inset = .02, title = "Legend", c("Non Engineer", "Engineer"), fill = c("darkturquoise", "turquoise4"), cex = 0.8)
+
+```
+
+***********************************************************************************************************************************************
+
+##MBA
+
+##SUMMARY
+```{r}
+summary(Cars_1$MBA)
+```
+
+##VISUALIZATION
+```{r}
+plot(MBA, main = "Number of MBA Graduates", xlab = "MBA", col = c("darkturquoise", "turquoise4"))
+legend("topright",inset = .02, title = "Legend", c("Non MBA", "MBA"), fill = c("darkturquoise", "turquoise4"), cex = 0.8)
+```
+
+***********************************************************************************************************************************************
+## WORK EXPERIENCE
+
+##SUMMARY
+```{r}
+summary(Work.Exp)
+```
+
+##MODE
+```{r}
+modeWE = table(as.vector(Work.Exp))
+names(modeWE) [modeWE == max(modeWE)]
+```
+
+##DENSITY AND DISTRIBUTION VISUALIZATION 
+```{r}
+hist(Work.Exp, density = 27, col = "turquoise4", border = "black", main = " Density & Distribution of Work Experiende", xlab = "Work Experience (in years)", freq = FALSE)
+lines(density(Work.Exp))
+```
+
+***********************************************************************************************************************************************
+
+##SALARY
+
+##SUMMARY
+```{r}
+summary(Salary)
+```
+
+##MODE
+```{r}
+modeSal = table(as.vector(Salary))
+names(modeSal) [modeSal == max(modeSal)]
+```
+
+##DENSITY AND DISTRIBUTION VISUALIZATION 
+```{r}
+hist(Salary, density = 27, col = "turquoise4", border = "black", main = " Density & Distribution of Salary",xlab = "Salary (in lakhs)(per annum)", freq = FALSE)
+lines(density(Salary))
+```
+
+***********************************************************************************************************************************************
+
+##DISTANCE
+
+##SUMMARY
+```{r}
+summary(Distance)
+```
+##MODE
+```{r}
+modeD = table(as.vector(Distance))
+names(modeD) [modeD == max(modeD)]
+```
+##DENSITY AND DISTRIBUTION VISUALIZATION 
+```{r}
+hist(Distance, density = 27, col = "turquoise4", border = "black", main = " Density & Distribution of Distance",xlab = "Distance (in kms)", freq = FALSE)
+lines(density(Distance))
+```
+
+***********************************************************************************************************************************************
+
+##LICENSE
+
+##SUMMARY
+```{r}
+summary(license)
+```
+
+##VISUALIZATION
+```{r}
+plot(license, main = "Number of License Holders", xlab = "License Holders", col = c("darkturquoise", "turquoise4"))
+legend("topright",inset = .02, title = "Legend", c("No", "Yes"), fill = c("darkturquoise", "turquoise4"), cex = 0.8)
+```
+
+***********************************************************************************************************************************************
+
+##TRANSPORT
+
+##SUMMARY
+```{r}
+summary(Transport_New)
+```
+
+##VISUALIZATION
+```{r}
+plot(Transport_New, main = "Visualization of Transport", xlab = "Transport Means", col = c("darkturquoise", "turquoise4"))
+legend("topright",inset = .02, title = "Legend", c("Other Means", "Car"), fill = c("darkturquoise", "turquoise4"), cex = 0.8)
+
+```
+
+***********************************************************************************************************************************************
+
+##OUTLIER ANALYSIS
+
+##BOXPLOT VISUALIZATION OF ALL NUMERIC VARIABLES IN DATASET
+
+AGE
+```{r}
+boxplot(Age, horizontal = TRUE, main = "OUTLIER CHECK FOR AGE", xlab = "AGE", col = "turquoise4")
+```
+
+WORK EXPERIENCE
+```{r}
+boxplot(Work.Exp, horizontal = TRUE, main = "OUTLIER CHECK FOR WORK EXPERIENCE", xlab = "WORK EXPERIENCE", col = "turquoise4")
+```
+
+SALARY
+```{r}
+boxplot(Salary, horizontal = TRUE, main = "OUTLIER CHECK FOR SALARY",xlab = "SALARY", col = "turquoise4")
+```
+
+DISTANCE
+```{r}
+boxplot(Distance, horizontal = TRUE, main = "OUTLIER CHECK FOR DISTANCE",xlab = "DISTANCE", col = "turquoise4")
+```
+
+##OUTLIER COUNT PER VARIABLE
+```{r}
+Outliers = function(data.frame){
+data.frame %>%
+     select_if(is.numeric) %>% 
+      map(~ boxplot.stats(.x)$out)
+  }
+
+Outliers(Cars_1)
+
+```
+
+##OUTLIER TREATMENT - CAPPING METHOD
+
+#AGE
+
+##CALCULATING UPPER AND LOWER LIMITS
+```{r}
+IQR.Age = IQR(Age)
+LowLimit.Age = quantile(Age,0.25) - 1.5*IQR.Age
+UppLimit.Age = quantile(Age,0.75) + 1.5*IQR.Age
+IQR.Age
+LowLimit.Age
+UppLimit.Age
+```
+
+##FINDING MAX VALUE CONSIDERING UPPER AND LOWER LIMITS
+```{r}
+WOutliers.Age = subset(Cars_1, Age >= LowLimit.Age & Age <= UppLimit.Age)
+max(WOutliers.Age$Age)
+```
+
+##OLD SUMMARY - PRE TREATMENT OF OUTLIERS
+```{r}
+summary(Age)
+```
+
+##CAPPING TREATMENT
+```{r}
+Age[Age > 37] = 37
+```
+
+##NEW SUMMARY - POST TREATMENT OF OUTLIERS
+```{r}
+summary(Age)
+```
+
+##BOXPLOT POST TREATMENT
+```{r}
+boxplot(Age, horizontal = TRUE, main = "OUTLIER CHECK FOR AGE", xlab = "AGE", col = "turquoise4")
+```
+
+***********************************************************************************************************************************************
+
+#WORK EXPERIENCE
+
+##CALCULATING UPPER AND LOWER LIMITS
+```{r}
+IQR.WE = IQR(Work.Exp)
+LowLimit.WE = quantile(Work.Exp,0.25) - 1.5*IQR.WE
+UppLimit.WE = quantile(Work.Exp,0.75) + 1.5*IQR.WE
+IQR.WE
+LowLimit.WE
+UppLimit.WE
+```
+
+##FINDING MAX VALUE CONSIDERING UPPER AND LOWER LIMITS
+```{r}
+WOutliers.WE = subset(Cars_1, Work.Exp >= LowLimit.WE & Work.Exp <= UppLimit.WE)
+max(WOutliers.WE$Work.Exp)
+```
+
+##OLD SUMMARY - PRE TREATMENT OF OUTLIERS
+```{r}
+summary(Work.Exp)
+```
+
+##CAPPING TREATMENT
+```{r}
+Work.Exp[Work.Exp > 15] = 15
+```
+
+##NEW SUMMARY - POST TREATMENT OF OUTLIERS
+```{r}
+summary(Work.Exp)
+```
+
+##BOXPLOT POST TREATMENT
+```{r}
+boxplot(Work.Exp, horizontal = TRUE, main = "OUTLIER CHECK FOR WORK EXPERIENCE", xlab = "WORK EXPERIENCE", col = "turquoise4")
+```
+
+
+***********************************************************************************************************************************************
+
+#SALARY
+
+##CALCULATING UPPER AND LOWER LIMITS
+```{r}
+IQR.Sal = IQR(Salary)
+LowLimit.Sal = quantile(Salary,0.25) - 1.5*IQR.Sal
+UppLimit.Sal = quantile(Salary,0.75) + 1.5*IQR.Sal
+IQR.Sal
+LowLimit.Sal
+UppLimit.Sal
+```
+
+##FINDING MAX VALUE CONSIDERING UPPER AND LOWER LIMITS
+```{r}
+WOutliers.Sal = subset(Cars_1, Salary >= LowLimit.Sal & Salary <= UppLimit.Sal)
+max(WOutliers.Sal$Salary)
+```
+
+##OLD SUMMARY - PRE TREATMENT OF OUTLIERS
+```{r}
+summary(Salary)
+```
+
+##CAPPING TREATMENT
+```{r}
+Salary[Salary > 23.9] = 23.9
+```
+
+##NEW SUMMARY - POST TREATMENT OF OUTLIERS
+```{r}
+summary(Salary)
+```
+
+##BOXPLOT POST TREATMENT
+```{r}
+boxplot(Salary, horizontal = TRUE, main = "OUTLIER CHECK FOR SALARY", xlab = "SALARY", col = "turquoise4")
+```
+
+***********************************************************************************************************************************************
+
+#DISTANCE
+
+##CALCULATING UPPER AND LOWER LIMITS
+```{r}
+IQR.Dist = IQR(Distance)
+LowLimit.Dist = quantile(Distance,0.25) - 1.5*IQR.Dist
+UppLimit.Dist = quantile(Distance,0.75) + 1.5*IQR.Dist
+IQR.Dist
+LowLimit.Dist
+UppLimit.Dist
+```
+
+##FINDING MAX VALUE CONSIDERING UPPER AND LOWER LIMITS
+```{r}
+WOutliers.Dist = subset(Cars_1, Distance >= LowLimit.Dist & Distance <= UppLimit.Dist)
+max(WOutliers.Dist$Distance)
+```
+
+##OLD SUMMARY - PRE TREATMENT OF OUTLIERS
+```{r}
+summary(Distance)
+```
+
+##CAPPING TREATMENT
+```{r}
+Distance[Distance > 19.8] = 19.8
+```
+
+##NEW SUMMARY - POST TREATMENT OF OUTLIERS
+```{r}
+summary(Distance)
+```
+
+##BOXPLOT POST TREATMENT
+```{r}
+boxplot(Distance, horizontal = TRUE, main = "OUTLIER CHECK FOR DISTANCE", xlab = "DISTANCE", col = "turquoise4")
+```
+ 
+***********************************************************************************************************************************************
+
+###BI-VARIATE ANALYSIS
+
+##AGE AND TRANSPORT
+
+#STACKED BAR CHART
+```{r}
+ggplot(Cars_1,aes(x=Age,fill=Transport_New))+
+    geom_bar(colour = "black", stat = "count" )+ggtitle("Age and Transport Analysis")+
+    geom_text(aes(label=scales::percent(..count../sum(..count..))),
+              stat='count',position=position_stack(vjust=0.5)) + scale_fill_manual(values=c("turquoise4", "paleturquoise3"))
+```
+##STACKED BAR CHART - AGE AND LICENSE
+```{r}
+ggplot(Cars_1,aes(x=Age,fill=license))+
+    geom_bar(colour = "black", stat = "count" )+ggtitle("Age and License Analysis")+
+    geom_text(aes(label=scales::percent(..count../sum(..count..))),
+              stat='count',position=position_stack(vjust=0.5)) + scale_fill_manual(values=c("turquoise4", "paleturquoise3"))
+```
+
+##OVERLAPPING DENSITY PLOT
+```{r}
+ggplot(Cars_1, aes(x = Age, fill = Transport_New))+geom_density(alpha = 0.4)+labs(title = "Age Distribution by Means of Transport")+scale_fill_manual(values=c("turquoise4", "paleturquoise3"))
+```
+***********************************************************************************************************************************************
+##GENDER AND TRANSPORT
+
+#STACKED BAR CHART
+```{r}
+ggplot(Cars_1,aes(x=Gender,fill=Transport_New))+
+    geom_bar(colour = "black", stat = "count" )+ggtitle("Gender and Transport Analysis")+
+    geom_text(aes(label=scales::percent(..count../sum(..count..))),
+              stat='count',position=position_stack(vjust=0.5)) + scale_fill_manual(values=c("turquoise4", "paleturquoise3"))
+````
+
+##STACKED BAR CHART - LICENSE
+```{r}
+
+ggplot(Cars_1,aes(x=Gender,fill=license))+
+    geom_bar(colour = "black", stat = "count" )+ggtitle("Gender and License Analysis")+
+    geom_text(aes(label=scales::percent(..count../sum(..count..))),
+              stat='count',position=position_stack(vjust=0.5)) + scale_fill_manual(values=c("turquoise4", "paleturquoise3"))
+```
+##HISTOGRAM - SALARY AND GENDER
+```{r}
+histogram(Data = Cars_1, ~Salary|Gender, main = "Gender and Salary Analyis", col = "turquoise4")
+```
+
+##BARCHART - GENDER AND WORK EXPERIENCE
+```{r}
+ggplot(Cars_1,aes(x=Work.Exp,fill=Gender))+
+    geom_bar(colour = "black", stat = "count" )+ggtitle("Gender and Work Experience Analysis")+
+    geom_text(aes(label=scales::percent(..count../sum(..count..))),
+              stat='count',position=position_stack(vjust=0.5)) + scale_fill_manual(values=c("turquoise4", "paleturquoise3"))
+```
+
+***********************************************************************************************************************************************
+##ENGINEER AND TRANSPORT
+
+#STACKED BAR CHART - ENGINEER AND TRANSPORT
+
+```{r}
+ggplot(Cars_1,aes(x=Engineer,fill=Transport_New))+
+    geom_bar(colour = "black", stat = "count" )+ggtitle("Engineer and Transport Analysis")+
+    geom_text(aes(label=scales::percent(..count../sum(..count..))),
+              stat='count',position=position_stack(vjust=0.5)) + scale_fill_manual(values=c("turquoise4", "paleturquoise3"))
+````
+
+##BARCHART - ENGINEER AND WORK EXPERIENCE
+```{r}
+ggplot(Cars_1,aes(x=Work.Exp,fill=Engineer))+
+    geom_bar(colour = "black", stat = "count" )+ggtitle("Engineering and Work Experience Analysis")+
+    geom_text(aes(label=scales::percent(..count../sum(..count..))),
+              stat='count',position=position_stack(vjust=0.5)) + scale_fill_manual(values=c("turquoise4", "paleturquoise3"))
+```
+
+BARCHART - ENGINEER AND LICENSE
+```{r}
+ggplot(Cars_1,aes(x=Engineer,fill=license))+
+    geom_bar(colour = "black", stat = "count" )+ggtitle("Engineer and License Analysis")+
+    geom_text(aes(label=scales::percent(..count../sum(..count..))),
+              stat='count',position=position_stack(vjust=0.5)) + scale_fill_manual(values=c("turquoise4", "paleturquoise3"))
+```
+
+***********************************************************************************************************************************************
+
+##MBA AND TRANSPORT
+
+#STACKED BAR CHART
+```{r}
+ggplot(Cars_1,aes(x=MBA,fill=Transport_New))+
+    geom_bar(colour = "black", stat = "count" )+ggtitle("MBA and Transport Analysis")+
+    geom_text(aes(label=scales::percent(..count../sum(..count..))),
+              stat='count',position=position_stack(vjust=0.5)) + scale_fill_manual(values=c("turquoise4", "paleturquoise3"))
+````
+
+##BARCHART - MBA AND WORK EXPERIENCE
+```{r}
+ggplot(Cars_1,aes(x=Work.Exp,fill=MBA))+
+    geom_bar(colour = "black", stat = "count" )+ggtitle("MBA and Work Experience Analysis")+
+    geom_text(aes(label=scales::percent(..count../sum(..count..))),
+              stat='count',position=position_stack(vjust=0.5)) + scale_fill_manual(values=c("turquoise4", "paleturquoise3"))
+```
+
+##BARCHART - MBA AND LICENSE
+```{r}
+ggplot(Cars_1,aes(x=MBA,fill=license))+
+    geom_bar(colour = "black", stat = "count" )+ggtitle("MBA and License Analysis")+
+    geom_text(aes(label=scales::percent(..count../sum(..count..))),
+              stat='count',position=position_stack(vjust=0.5)) + scale_fill_manual(values=c("turquoise4", "paleturquoise3"))
+```
+***********************************************************************************************************************************************
+
+##WORK EXPERIENCE AND TRANSPORT
+
+#STACKED BAR CHART - WORK EXPERIENCE AND TRANSPORT
+```{r}
+ggplot(Cars_1,aes(x=Work.Exp,fill=Transport_New))+
+    geom_bar(colour = "black", stat = "count" )+ggtitle("Work Experience and Transport Analysis")+
+    geom_text(aes(label=scales::percent(..count../sum(..count..))),
+              stat='count',position=position_stack(vjust=0.5)) + scale_fill_manual(values=c("turquoise4", "paleturquoise3"))
+```
+
+##STACKED BAR CHART - WORK EXPERIENCE AND LICENSE
+```{r}
+ggplot(Cars_1,aes(x=Work.Exp,fill=license))+
+    geom_bar(colour = "black", stat = "count" )+ggtitle("Work Experience and License Analysis")+
+    geom_text(aes(label=scales::percent(..count../sum(..count..))),
+              stat='count',position=position_stack(vjust=0.5)) + scale_fill_manual(values=c("turquoise4", "paleturquoise3"))
+```
+
+##OVERLAPPING DENSITY PLOT
+```{r}
+ggplot(Cars_1, aes(x = Work.Exp, fill = Transport_New))+geom_density(alpha = 0.4)+labs(title = "Work Experience Distribution by Means of Transport")+scale_fill_manual(values=c("turquoise4", "paleturquoise3"))
+```
+
+***********************************************************************************************************************************************
+
+##SALARY
+
+##JITTERPLOT - SALARY AND TRANSPORT
+```{r}
+ggplot(Cars_1, aes(x = Salary, y = Transport_New, color = Transport_New))+geom_jitter(position = position_jitter(0.2))+labs(title = "Salary & Transport Analysis")
+```
+
+##JITTERPLOT - WORK EXPERIENCE AND SALARY wrt TRANSPORT
+```{r}
+ggplot(Cars_1, aes(x = Salary, y=Work.Exp, color = Transport_New))+
+         geom_jitter(alpha = 0.7, size = 1.5)+ labs(title = "Salary & Work Experience Analysis w.r.t. Transport")
+```
+
+##OVERLAPPING DENSITY PLOT
+```{r}
+ggplot(Cars_1, aes(x = Salary, fill = Transport_New))+geom_density(alpha = 0.4)+labs(title = "Salary Distribution by Means of Transport")+scale_fill_manual(values=c("turquoise4", "paleturquoise3"))
+```
+***********************************************************************************************************************************************
+
+##DISTANCE AND TRANSPORT
+
+#STACKED BAR CHART - DISTANCE AND TRANSPORT
+```{r}
+ggplot(Cars_1, aes(x = Distance, y = Transport_New, color = Transport_New))+geom_jitter(position = position_jitter(0.2))+labs(title = "Distance & Transport Analysis")
+```
+
+##JITTERPLOT - SALARY and DISTANCE ANALYSIS w.r.t. TRANSPORT
+```{r}
+ggplot(Cars_1, aes(x = Salary, y=Distance, color = Transport_New))+
+         geom_jitter(alpha = 0.7, size = 1.5)+ labs(title = "Salary & Distance Analysis w.r.t. Transport")
+```
+
+##OVERLAPPING DENSITY PLOT
+```{r}
+ggplot(Cars_1, aes(x = Distance, fill = Transport_New))+geom_density(alpha = 0.4)+labs(title = "Distance Distribution by Means of Transport")+scale_fill_manual(values=c("turquoise4", "paleturquoise3"))
+```
+
+***********************************************************************************************************************************************
+
+##LICENSE AND TRANSPORT
+
+#STACKED BAR CHART - LICENSE and TRANSPORT
+```{r}
+ggplot(Cars_1,aes(x=license,fill=Transport_New))+
+    geom_bar(colour = "black", stat = "count" )+ggtitle("License and Transport Analysis")+
+    geom_text(aes(label=scales::percent(..count../sum(..count..))),
+              stat='count',position=position_stack(vjust=0.5)) + scale_fill_manual(values=c("turquoise4", "paleturquoise3"))
+```
+***********************************************************************************************************************************************
+
+##MULTI COLLINEARITY CHECK
+```{r}
+NumericVar =  sapply(Cars_1, is.numeric)
+CorrMatrix = cor(Cars_1[, NumericVar])
+corrplot(CorrMatrix, main = "\n\nCorrelation Plot for Numerical Variables", method = "number")
+```
+
+```{r}
+print(CorrMatrix, digits=3)
+```
+
+***********************************************************************************************************************************************
+
+###MODEL BUILDING
+
+##DATA PREPARATION
+
+##CONVERTING DATASET INTO A DATAFRAME STRUCTURE
+```{r}
+Cars_DF = data.frame(Cars_1)
+```
+
+##SPLITTING DATA IN TRAINING AND TEST - 70:30
+```{r}
+set.seed(3000)
+
+Sample = sample.split(Cars_DF, SplitRatio = .7)
+TrainDS = subset(Cars_DF, Sample == TRUE)
+TestDS = subset(Cars_DF, Sample == FALSE)
+```
+
+##CHECKING DIMENSIONS OF THE TRAINING AND TEST DATA SET
+```{r}
+dim(TrainDS)
+```
+```{r}
+dim(TestDS)
+```
+
+##CHECKING IF THE TARGET VARIABLE IS DISTRIBUTED PROPORTIONALLY IN BOTH TRAINING AND TEST DATASET
+```{r}
+prop.table(table(TrainDS$Transport_New))
+prop.table(table(TestDS$Transport_New))
+```
+
+##CREATING BALANCED DATASET USING SMOTE
+```{r}
+SMOTE_BalDS = SMOTE(Transport_New~., TrainDS, perc.over = 550, k=5, perc.under = 160)
+```
+
+##CONVERTING DATASET INTO DATAFRAME STRUCTURE
+```{r}
+CarsSMOTE_DF = data.frame(SMOTE_BalDS)
+```
+
+##ENSURING PREDICTOR VARIABLE IS A FACTOR IN THE NEW DATASET
+```{r}
+CarsSMOTE_DF$Transport_New = as.factor(CarsSMOTE_DF$Transport_New)
+```
+
+##SPLITTING THE SMOTE DATASET INTO TRAIN AND TEST
+```{r}
+set.seed(3000)
+
+Sample_SMOTE = sample.split(CarsSMOTE_DF, SplitRatio = .7)
+SMOTE_TrainDS = subset(CarsSMOTE_DF, Sample == TRUE)
+SMOTE_TestDS = subset(CarsSMOTE_DF, Sample == FALSE)
+```
+
+##CHECKING RESPONSE VARIABLE PROPORTION POST SMOTE
+```{r}
+prop.table(table(SMOTE_TrainDS$Transport_New))
+```
+```{r}
+prop.table(table(SMOTE_TestDS$Transport_New))
+```
+
+***********************************************************************************************************************************************
+
+##MODEL BUILDING USING LOGISTIC REGRESSION
+
+##MODEL1 - USING ALL VARIABLES
+```{r}
+LRM1 = glm(Transport_New~., data = SMOTE_TrainDS, family = binomial(link='logit'))
+print(summary(LRM1))
+```
+
+##CHECKING FOR MULTICOLLINEARITY
+```{r}
+vif(LRM1)
+```
+
+***********************************************************************************************************************************************
+
+##MODEL 2 - EXCLUDING WORK EXPERIENCE VARIABLE
+```{r}
+LRM2 = glm(Transport_New~. -Work.Exp, data = SMOTE_TrainDS, family = binomial(link='logit'))
+print(summary(LRM2))
+```
+
+##CHECKING FOR MULTI COLLINEARITY - AFTER THE EXCLUSION OF THE WORK EXPERIENCE VARIABLE
+```{r}
+vif(LRM2)
+```
+
+***********************************************************************************************************************************************
+
+##MODEL 3 - EXCLUDING WORK EXPERIENCE, GENDER, ENGINEER, MBA AND DISTANCE VARIABLE
+```{r}
+LRM3 = glm(Transport_New~. -Work.Exp -Gender -Engineer -MBA -Distance, data = SMOTE_TrainDS, family = binomial(link='logit'))
+print(summary(LRM3))
+```
+
+##CHECKING VIF
+```{r}
+vif(LRM3)
+```
+
+***********************************************************************************************************************************************
+
+##LIKELIHOOD RATIO TEST
+```{r}
+lrtest(LRM2)
+```
+
+##MCFADDEN TEST OF SIGNIFICANCE
+```{r}
+pR2(LRM2)
+```
+
+##ODDS RATIO
+```{r}
+round(exp(coef(LRM2)),4)
+```
+```{r}
+round(exp(coef(LRM2))/(1+exp(coef(LRM2))),4)
+```
+```{r}
+LRM_Odds=exp(coef(LRM2))
+Prob=LRM_Odds/(1+LRM_Odds)
+LRM_OddSum = LRM_Odds[2]+LRM_Odds[3]+LRM_Odds[4]+LRM_Odds[5]+LRM_Odds[6]+LRM_Odds[7]+LRM_Odds[8]
+VarImp = LRM_Odds/LRM_OddSum*100
+OddsMatrix<-data.frame(LRM_Odds,Prob,VarImp)
+OddsMatrix$Prob <- OddsMatrix$Prob*100
+options(scipen=999)
+round(OddsMatrix, 2)
+```
+
+**********************************************************************************************************************************************
+##CONFUSION MATRIX - LRM2
+
+##ON TRAINING DATA - SMOTE
+```{r}
+PredictionM1  = predict(LRM2,newdata=SMOTE_TrainDS,type="response")
+YPredNum  = ifelse(PredictionM1>0.5,1,0)
+Prediction  = factor(YPredNum, levels=c(0,1))
+Reference =  SMOTE_TrainDS$Transport_New
+confusionMatrix(table(Prediction,Reference))
+```
+##ON TRAINING DATA - IMBALANCED
+
+```{r}
+PredictionMA  = predict(LRM2,newdata=TrainDS,type="response")
+YPredNumA  = ifelse(PredictionMA>0.5,1,0)
+PredictionA  = factor(YPredNumA, levels=c(0,1))
+ReferenceA =  TrainDS$Transport_New
+confusionMatrix(table(PredictionA,ReferenceA))
+```
+
+**********************************************************************************************************************************************
+
+##ON TESTING DATA
+
+##SMOTE
+```{r}
+PredictionM2  = predict(LRM2,newdata=SMOTE_TestDS,type="response")
+YPredNum2 = ifelse(PredictionM2>0.5,1,0)
+Prediction2 = factor(YPredNum2, levels=c(0,1))
+Reference2 = SMOTE_TestDS$Transport_New
+confusionMatrix(table(Prediction2,Reference2))
+
+```
+
+##IMBALANCED DATA
+```{r}
+PredictionMB  = predict(LRM2,newdata=TestDS,type="response")
+YPredNumB = ifelse(PredictionMB>0.5,1,0)
+PredictionB = factor(YPredNumB, levels=c(0,1))
+ReferenceB = TestDS$Transport_New
+confusionMatrix(table(PredictionB,ReferenceB))
+```
+
+**********************************************************************************************************************************************
+
+##ROC CURVE - LOGISTIC REGRESSION MODEL - TESTING DATA - SMOTE
+```{r}
+ROCLogReg_STest = roc(SMOTE_TestDS$Transport_New,PredictionM2)
+plot(ROCLogReg_STest)
+```
+
+```{r}
+print(ROCLogReg_STest)
+```
+
+**********************************************************************************************************************************************
+
+##ROC CURVE - LOGISTIC REGRESSION MODEL - TESTING DATA - IMBALANCED
+```{r}
+ROCLogReg_ITest = roc(TestDS$Transport_New,PredictionMB)
+plot(ROCLogReg_ITest)
+```
+
+```{r}
+print(ROCLogReg_ITest)
+```
+
+**********************************************************************************************************************************************
+
+##KS SCORE
+```{r}
+KSTest_SMOTE = prediction(PredictionM2, SMOTE_TestDS$Transport_New)
+PerfKS_SMOTE = performance(KSTest_SMOTE, "tpr", "fpr")
+KSTestLR_SMOTE = round(max(attr(PerfKS_SMOTE,'y.values')[[1]]-attr(PerfKS_SMOTE,'x.values')[[1]]),4)*100
+
+KSTestLR_SMOTE
+```
+
+```{r}
+KSTest_IMB = prediction(PredictionMB, TestDS$Transport_New)
+PerfKS_IMB = performance(KSTest_IMB, "tpr", "fpr")
+KSTestLR_IMB = round(max(attr(PerfKS_IMB,'y.values')[[1]]-attr(PerfKS_IMB,'x.values')[[1]]),4)*100
+
+KSTestLR_IMB
+```
+
+**********************************************************************************************************************************************
+
+##GINI MEASURE
+```{r}
+ineq(PredictionM2, type = "Gini")
+```
+```{r}
+ineq(PredictionMB, type = "Gini")
+```
+
+**********************************************************************************************************************************************
+
+##APPLYING KNN
+```{r}
+set.seed(500) 
+trControl = trainControl(method ="cv", number = 10 ) 
+KNNModel = caret::train(Transport_New~., method = "knn", tuneGrid = expand.grid(k = 2:20), trControl = trControl, metric = "Accuracy", preProcess = c("center", "scale"), data = SMOTE_TrainDS)
+KNNModel
+```
+```{r}
+set.seed(500) 
+trControl1 = trainControl(method ="cv", number = 10 ) 
+KNNModel1 = caret::train(Transport_New~., method = "knn", tuneGrid = expand.grid(k = 2:20), trControl = trControl1, metric = "Accuracy", preProcess = c("center", "scale"), data = TrainDS)
+KNNModel1
+```
+
+##KNN PREDCITION
+
+##SMOTE
+```{r}
+KNN_Prediction_Train = predict(KNNModel, SMOTE_TrainDS) 
+confusionMatrix(KNN_Prediction_Train, SMOTE_TrainDS$Transport_New)
+
+KNN_Prediction = predict(KNNModel, SMOTE_TestDS) 
+confusionMatrix(KNN_Prediction, SMOTE_TestDS$Transport_New)
+```
+
+##ORIGINAL DATASET
+```{r}
+KNN_Prediction1_Train = predict(KNNModel1, TrainDS) 
+confusionMatrix(KNN_Prediction1_Train, TrainDS$Transport_New)
+
+KNN_Prediction1 = predict(KNNModel1, TestDS) 
+confusionMatrix(KNN_Prediction1, TestDS$Transport_New)
+```
+
+**********************************************************************************************************************************************
+
+##APPLYING NAIVE BAYES
+
+###SPLITTING DATA FOR NAIVE BAYES
+```{r}
+SampleNB = sample.split(Cars_DF, SplitRatio = .7)
+TrainDS_NB = subset(Cars_DF, Sample == TRUE)
+TestDS_NB = subset(Cars_DF, Sample == FALSE)
+```
+
+##MODEL BUILDING USING NAIVE BAYES
+
+##TRAINING DATASET - ORIGINAL
+```{r}
+NBModel = naiveBayes(TrainDS_NB$Transport_New~.,data = TrainDS_NB, type = "class")
+NBModel
+```
+
+##TRAINING DATASET - SMOTE
+```{r}
+NBModel_SMOTE = naiveBayes(SMOTE_TrainDS$Transport_New~.,data = SMOTE_TrainDS, type = "class")
+NBModel_SMOTE
+```
+
+##NAIVE BAYES PREDICTION ON TRAINING DATA
+
+##ORIGINAL
+```{r}
+PredNB_Train = predict(NBModel, newdata = TrainDS_NB)
+
+confusionMatrix(table(PredNB_Train, TrainDS_NB$Transport_New))
+```
+##SMOTE
+```{r}
+PredNB_Train1 = predict(NBModel_SMOTE, newdata = SMOTE_TrainDS)
+
+confusionMatrix(table(PredNB_Train1, SMOTE_TrainDS$Transport_New))
+```
+##NAIVE BAYES PREDICTION ON TESTING DATA
+
+##SMOTE
+```{r}
+PredNB_Test1 = predict(NBModel_SMOTE, newdata = SMOTE_TestDS)
+
+confusionMatrix(table(PredNB_Test1, SMOTE_TestDS$Transport_New))
+```
+
+##ORIGINAL
+```{r}
+PredNB_Test = predict(NBModel, newdata = TestDS_NB)
+
+confusionMatrix(table(PredNB_Test, TestDS_NB$Transport_New))
+```
+
+**********************************************************************************************************************************************
+
+##BAGGING
+
+##CREATING NEW DATA
+
+```{r}
+SampleBag = sample.split(Cars_DF, SplitRatio = .7)
+TrainDS_Bag = subset(Cars_DF, Sample == TRUE)
+TestDS_Bag = subset(Cars_DF, Sample == FALSE)
+```
+
+##CREATING MODEL
+```{r}
+Bagging_model = bagging(Transport_New~., data = TrainDS_Bag, control = rpart.control(maxdepth = 5, minsplit = 5))
+Bagging_model
+```
+
+##BAGGING TRAINING DATASET
+```{r}
+Predict_Train = predict(Bagging_model, TrainDS_Bag)
+table(TrainDS_Bag$Transport_New, Predict_Train)
+```
+##CONFUSION MATRIX ON TRAINING DATASET
+```{r}
+confusionMatrix(TrainDS_Bag$Transport_New, Predict_Train, positive = '1')
+```
+
+##BAGGING TEST DATASET
+```{r}
+Predict_Test = predict(Bagging_model, TestDS_Bag)
+table(TestDS_Bag$Transport_New, Predict_Test)
+
+```
+
+##CONFUSION MATRIX ON TEST DATA
+```{r}
+confusionMatrix(TestDS_Bag$Transport_New, Predict_Test, positive = '1')
+```
+
+**********************************************************************************************************************************************
+
+##BOOSTING
+
+##CREATING NEW DATA
+
+```{r}
+SampleBoost = sample.split(Cars_DF, SplitRatio = .7)
+TrainDS_Boost = subset(Cars_DF, Sample == TRUE)
+TestDS_Boost = subset(Cars_DF, Sample == FALSE)
+```
+
+##CREATING MODEL
+```{r}
+Boost.fit = train(Transport_New~., data = TrainDS_Boost, method = 'gbm', verbose = FALSE)
+Boost.fit
+```
+
+##BOOSTING TRAINING SET
+```{r}
+Train_BoostPred = predict(Boost.fit, TrainDS_Boost)
+table(Train_BoostPred, TrainDS_Boost$Transport_New)
+
+```
+
+##CONFUSION MATRIX - TRAINING DATA
+```{r}
+confusionMatrix(Train_BoostPred, TrainDS_Boost$Transport_New, positive = "1")
+```
+
+##BOOSTING TEST SET
+```{r}
+Test_BoostPred = predict(Boost.fit, TestDS_Boost)
+table(Test_BoostPred, TestDS_Boost$Transport_New)
+```
+##CONFUSION MATRIX ON TESTING DATASET
+```{r}
+confusionMatrix(Test_BoostPred, TestDS_Boost$Transport_New)
+```
+
